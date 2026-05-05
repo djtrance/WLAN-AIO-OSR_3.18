@@ -1,0 +1,30 @@
+From 1d588a07aa1082fee6b8a950a69296bd634e1109 Mon Sep 17 00:00:00 2001
+From: Ming Jiang <mjiang@qca.qualcomm.com>
+Date: Thu, 29 Sep 2016 23:59:36 +0800
+Subject: [PATCH] Enable firmware dbglogs Signed-off-by: Ming Jiang
+ <mjiang@qca.qualcomm.com>
+
+---
+ drivers/ath6kl/init.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/ath6kl/init.c b/drivers/ath6kl/init.c
+index 4890b51..c4e9ceb 100755
+--- a/drivers/ath6kl/init.c
++++ b/drivers/ath6kl/init.c
+@@ -1095,10 +1095,11 @@ int ath6kl_configure_target(struct ath6kl *ar)
+ 
+ 	param |= (0 << HI_OPTION_MAC_ADDR_METHOD_SHIFT);
+ 	param |= (0 << HI_OPTION_FW_BRIDGE_SHIFT);
+-
++#if 0
+ 	if (!ath6kl_mod_debug_quirks(ar, ATH6KL_MODULE_ENABLE_FWLOG))
+ 		param |= HI_OPTION_DISABLE_DBGLOG;
+-
++#endif
+ 	if (ath6kl_bmi_write(ar,
+ 			     ath6kl_get_hi_item_addr(ar,
+ 			     HI_ITEM(hi_option_flag)),
+-- 
+1.8.2
+

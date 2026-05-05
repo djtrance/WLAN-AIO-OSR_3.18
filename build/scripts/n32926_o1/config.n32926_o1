@@ -1,0 +1,26 @@
+#
+# Please modify KERNELPATH, KERNELARCH and TOOLPREFIX to meet your environment
+#
+
+# MIPS-Sigma example ###########################################################################################################
+#export KERNELPATH=/tmp/test_sigma/3_11_0_8670_prod/smp86xx_kernel_source_R2.6.32-17/linux-2.6.32/
+#export KERNELPATH=/home/wgzh//work/Hi3516D_Kernel_toolchain/linux-3.4.y
+#export KERNELPATH=/home/seven/work/nuvoton/n32926/v2.1/linux-2.6.35.4.rak.spi
+#export KERNELPATH=/home/seven/work/fsl/imx6q/myandroid_android-4.4.2_r1/kernel_imx
+export KERNELPATH=/home/wgzh/work/const/linux
+export KERNELARCH=arm
+export TOOLPREFIX=arm-linux-gnueabihf-
+
+# Build regdb into cfg80211.ko
+export DEF_CFG80211_INTERNAL_REGDB=y
+
+# Use local libnl library or not
+export BUILD_LIBNL=y
+export INCLUDE_LIBNL11_HEADER=${ATH_TOPDIR}/apps/libnl-1/include
+export INCLUDE_LIBNL11_LIB=-lm ${ATH_TOPDIR}/apps/libnl-1/lib/libnl.a 
+
+export TOOLCHAIN=/home/wgzh/work/const/host/opt/ext-toolchain/bin
+#export TOOLCHAIN=/opt/hisi-linux/x86-arm/arm-hisiv300-linux/bin/
+#export TOOLCHAIN=/home/seven/work/fsl/imx6q/myandroid_android-4.4.2_r1/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/
+export PATH:=${TOOLCHAIN}:${PATH}
+export COMPILKIND="release codesourcery hardfloat glibc"

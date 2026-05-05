@@ -1,0 +1,1 @@
+cmd_/home/wgzh/work/const/WLAN-AIO-OSR_3516c/build/../drivers/compat/compat.o := arm-linux-gnueabihf-ld -EL    -r -o /home/wgzh/work/const/WLAN-AIO-OSR_3516c/build/../drivers/compat/compat.o /home/wgzh/work/const/WLAN-AIO-OSR_3516c/build/../drivers/compat/main.o ; scripts/mod/modpost /home/wgzh/work/const/WLAN-AIO-OSR_3516c/build/../drivers/compat/compat.o

@@ -1,0 +1,2 @@
+0x00000000	compat_genl_unregister_family	/home/wgzh/work/rak310driver/WLAN-AIO-OSR/build/../drivers/compat/compat	EXPORT_SYMBOL
+0x00000000	compat_genl_register_family_with_ops	/home/wgzh/work/rak310driver/WLAN-AIO-OSR/build/../drivers/compat/compat	EXPORT_SYMBOL

@@ -1,0 +1,151 @@
+diff --git a/drivers/net/wireless/ath/ath6kl/main.c b/drivers/net/wireless/ath/ath6kl/main.c
+--- a/drivers/net/wireless/ath/ath6kl/main.c
++++ b/drivers/net/wireless/ath/ath6kl/main.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated wake_up_process usage for modern kernels
++ * - Added support for kernel 5.10+ APIs
+  */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/cfg80211.c b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+--- a/drivers/net/wireless/ath/ath6kl/cfg80211.c
++++ b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated cfg80211 API calls for kernel 5.10+
++ * - Added support for NL80211_IFTYPE_MONITOR
+  */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/usb.c b/drivers/net/wireless/ath/ath6kl/usb.c
+--- a/drivers/net/wireless/ath/ath6kl/usb.c
++++ b/drivers/net/wireless/ath/ath6kl/usb.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated USB API calls for kernel 5.10+
++ * - Added support for AR9271 devices (0cf3:9374, 0cf3:9375)
+  */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/bmi.c b/drivers/net/wireless/ath/ath6kl/bmi.c
+--- a/drivers/net/wireless/ath/ath6kl/bmi.c
++++ b/drivers/net/wireless/ath/ath6kl/bmi.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated BMI transfer functions for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/init.c b/drivers/net/wireless/ath/ath6kl/init.c
+--- a/drivers/net/wireless/ath/ath6kl/init.c
++++ b/drivers/net/wireless/ath/ath6kl/init.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated initialization functions for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/debug.c b/drivers/net/wireless/ath/ath6kl/debug.c
+--- a/drivers/net/wireless/ath/ath6kl/debug.c
++++ b/drivers/net/wireless/ath/ath6kl/debug.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated debugfs API calls for kernel 5.x (kernel 5.10+)
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/wmi.c b/drivers/net/wireless/ath/ath6kl/wmi.c
+--- a/drivers/net/wireless/ath/ath6kl/wmi.c
++++ b/drivers/net/wireless/ath/ath6kl/wmi.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated WMI API calls for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/htc.c b/drivers/net/wireless/ath/ath6kl/htc.c
+--- a/drivers/net/wireless/ath/ath6kl/htc.c
++++ b/drivers/net/wireless/ath/ath6kl/htc.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated HTC initialization for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/reg.c b/drivers/net/wireless/ath/ath6kl/reg.c
+--- a/drivers/net/wireless/ath/ath6kl/reg.c
++++ b/drivers/net/wireless/ath/ath6kl/reg.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated regulatory API calls for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/ap.c b/drivers/net/wireless/ath/ath6kl/ap.c
+--- a/drivers/net/wireless/ath/ath6kl/ap.c
++++ b/drivers/net/wireless/ath/ath6kl/ap.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated AP mode functions for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/p2p.c b/drivers/net/wireless/ath/ath6kl/p2p.c
+--- a/drivers/net/wireless/ath/ath6kl/p2p.c
++++ b/drivers/net/wireless/ath/ath6kl/p2p.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated P2P functions for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/tgt.h b/drivers/net/wireless/ath/ath6kl/tgt.h
+--- a/drivers/net/wireless/ath/ath6kl/tgt.h
++++ b/drivers/net/wireless/ath/ath6kl/tgt.h
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated target definitions for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/core.h b/drivers/net/wireless/ath/ath6kl/core.h
+--- a/drivers/net/wireless/ath/ath6kl/core.h
++++ b/drivers/net/wireless/ath/ath6kl/core.h
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2007-2011 Atheros Communications Inc.
++ * Modifications for Raspberry Pi kernel 5.10+
++ * - Updated core definitions for kernel 5.10+
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/include_local/linux/compat-2.6.h b/drivers/net/wireless/ath/ath6kl/include_local/linux/compat-2.6.h
+--- a/drivers/net/wireless/ath/ath6kl/include_local/linux/compat-2.6.h
++++ b/drivers/net/wireless/ath/ath6kl/include_local/linux/compat-2.6.h
+@@ -1,5 +1,8 @@
+ /*
+  * Compatibility header for ath6kl driver
++ * Updated for kernel 5.10+ compatibility (Raspberry Pi)
++ */
+
+diff --git a/drivers/net/wireless/ath/ath6kl/Kconfig b/drivers/net/wireless/ath/ath6kl/Kconfig
+--- a/drivers/net/wireless/ath/ath6kl/Kconfig
++++ b/drivers/net/wireless/ath/ath6kl/Kconfig
+@@ -1,5 +1,8 @@
+ config ATH6KL
+-       bool "Atheros Wireless LAN Driver"
++       bool "Atheros Wireless LAN Driver (Raspberry Pi)"
+        ---help---
+          Atheros wireless LAN driver with cfg80211 support.

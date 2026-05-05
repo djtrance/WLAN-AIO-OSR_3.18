@@ -1,0 +1,145 @@
+# Build list
+
+targetList := drivers_firmware drivers_firmware_transfer drivers
+ifdef BUILD_LIBNL
+targetList += libnl
+endif
+targetList += iw wpa_supplicant hostapd
+
+#targetList += iw wpa_supplicant_jc rootfs_build
+#targetList += iw wpa_supplicant_nojc rootfs_build
+#targetList += wireless_tools_build athtst_build
+#targetList += sigmadut_build
+#targetList += wfadut_build
+#targetList += spe_package_build
+
+
+default: ${targetList}
+
+#################################################################################################################################
+###export SIGMA_TOPDIR=${ATH_TOPDIR}/apps/sigma-dut
+####export WFDSIGMA_TOPDIR=${ATH_TOPDIR}/apps/wfa-sigma-dut
+export ATHTSTPATH_TOPDIR=${ATH_TOPDIR}/apps/athtst
+###export SPE_PACKAGE_TOPDIR=$(ATH_TOPDIR)/build/scripts/$(BOARD_TYPE)/spe_package
+####export DDSP_PACKAGE_TOPDIR=$(ATH_TOPDIR)/build/scripts/$(BOARD_TYPE)/ddsp_package
+export WLAN_DRIVER_TOPDIR=$(ATH_TOPDIR)/drivers
+
+#################################################################################################################################
+#
+# driver build
+#
+drivers_patch:
+	@echo Build drivers patch
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/00-remore_ns-type.patch
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/01-add_CFG80211_WEXT.patch 
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/08-hostap_make_libnl.patch 
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/12-intra_reg.patch
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/18-Add_Android_compile_option.patch 
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/46-disable_ioctlapp_for_osr.patch
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/02-remore_netlink-seq.patch
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/03-change_IFF_BRIDGE_PORT.patch
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/44-use_kernel_cfg80211.patch
+
+#################################################################################################################################
+#
+# Sigma package
+#
+sigmadut_build: rootfs_prep sigmadut_clean
+	@echo Build Sigma
+	cd $(SIGMA_TOPDIR) && \
+	${MAKEARCH} && \
+        cp $(SIGMA_TOPDIR)/sigma_dut $(INSTALL_ROOT)/sbin
+
+sigmadut_clean:
+	@echo Clean Sigma
+	cd $(SIGMA_TOPDIR) && \
+        ${MAKEARCH} clean
+
+#################################################################################################################################
+#
+# WFA-Sigma package
+#
+wfadut_build: rootfs_prep wfadut_clean
+	@echo Build WFA-Sigma
+	cd $(WFDSIGMA_TOPDIR) && \
+	${MAKEARCH} && \
+	cp $(WFDSIGMA_TOPDIR)/ca/wfa_ca $(WFDSIGMA_TOPDIR)/dut/wfa_dut $(INSTALL_ROOT)/sbin
+
+wfadut_clean:
+	@echo Clean WFA-Sigma
+	cd $(WFDSIGMA_TOPDIR) && \
+	${MAKEARCH} clean
+
+#
+# ATHTST Tools builds
+#
+athtst_build: rootfs_prep
+	@echo build ATHTST command
+	cd $(ATHTSTPATH_TOPDIR) && \
+		make && \
+		cp $(ATHTSTPATH_TOPDIR)/athtst $(INSTALL_ROOT)/sbin
+
+athtst_clean:
+	@echo clean ATHTST command
+	cd $(ATHTSTPATH_TOPDIR) && make clean
+
+#################################################################################################################################
+#
+# wpa_supplicant build (NO JOB-CONTROL support)
+#
+wpa_supplicant_nojc: rootfs_prep wpa_supplicant_clean_nojc
+	@echo Build wpa_supplicant without job-control
+	cd $(WPA_SUPPLICANT_COMBO_TOPDIR)/wpa_supplicant && \
+	mkdir -p $(INSTALL_ROOT)/sbin/systemd $(INSTALL_ROOT)/sbin/dbus && \
+	CFLAGS="-MMD -O2 -Wall -DNO_JOBCTRL=1" ${MAKEARCH} CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld && \
+	${MAKEARCH} DESTDIR=$(INSTALL_ROOT) BINDIR=/sbin LIBDIR=/lib install
+
+#################################################################################################################################
+#
+# wpa_supplicant build
+#
+wpa_supplicant_jc: rootfs_prep wpa_supplicant_clean_nojc
+	@echo Build wpa_supplicant without job-control
+	cd $(WPA_SUPPLICANT_COMBO_TOPDIR)/wpa_supplicant && \
+	mkdir -p $(INSTALL_ROOT)/sbin/systemd $(INSTALL_ROOT)/sbin/dbus && \
+	CFLAGS="-MMD -O2 -Wall" ${MAKEARCH} CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld && \
+	${MAKEARCH} DESTDIR=$(INSTALL_ROOT) BINDIR=/sbin LIBDIR=/lib install
+
+wpa_supplicant_clean_nojc:
+	@echo Clean wpa_supplicant without job-control
+	cd $(WPA_SUPPLICANT_COMBO_TOPDIR)/wpa_supplicant && ${MAKEARCH} clean
+	
+	
+#
+# hostapd build
+#
+hostapd: rootfs_prep hostapd_clean
+	@echo Build wpa_supplicant
+	cd $(WPA_SUPPLICANT_TOPDIR)/hostapd && \
+	${MAKEARCH} CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld && \
+	cp -f hostapd $(INSTALL_ROOT)/sbin && \
+	cp -f hostapd_cli $(INSTALL_ROOT)/sbin
+
+hostapd_clean:
+	@echo Clean hostapd
+	cd $(WPA_SUPPLICANT_TOPDIR)/hostapd && ${MAKEARCH} clean
+	
+
+#################################################################################################################################
+#
+# SPE package
+#
+spe_package_build:
+	@echo Build SPE Package
+	cd $(SPE_PACKAGE_TOPDIR) && \
+	${MAKEARCH} 
+
+
+#################################################################################################################################
+#
+# DDSP package
+#
+ddsp_package_build:
+	@echo Build DDSP Package
+	cd $(DDSP_PACKAGE_TOPDIR) && \
+	${MAKEARCH} 

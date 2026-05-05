@@ -1,0 +1,49 @@
+# Configuración específica para kernel 5.10.103-v7+ de Raspberry Pi
+
+# Ruta del kernel source/build
+export KERNELPATH="/lib/modules/5.10.103-v7+/build"
+
+# Ruta del kernel source completo (opcional, para debugging)
+export KERNEL_SRC="/usr/src/linux-headers-5.10.103-v7+"
+
+# Arquitectura del kernel
+export KERNELARCH="arm"
+
+# Toolchain para Raspberry Pi (armhf)
+export TOOLPREFIX="arm-linux-gnueabihf-"
+
+# Ruta del toolchain (si usas una toolchain personalizada)
+export TOOLCHAIN="/usr/bin"
+
+# Agregar toolchain al PATH
+export PATH=${TOOLCHAIN}:${PATH}
+
+# Build configuration para kernel 5.10+
+export DEF_CFG80211_INTERNAL_REGDB=y
+
+# Usar libnl local o no
+export BUILD_LIBNL=y
+export INCLUDE_LIBNL11_HEADER=${ATH_TOPDIR}/apps/libnl-1/include
+export INCLUDE_LIBNL11_LIB="-lm ${ATH_TOPDIR}/apps/libnl-1/lib/libnl.a"
+
+# Compatibilidad con kernel 5.10+
+export COMPILKIND="release armhf hardfloat glibc"
+
+# Kernel version específica
+export KERNEL_VERSION="5.10.103-v7+"
+
+# Dispositivos USB soportados para Raspberry Pi
+export SUPPORTED_USB_IDS="0cf3:9374 0cf3:9375"
+
+# Parámetros del driver para Raspberry Pi
+export DEFAULT_MODULE_PARAMS="ath6kl_p2p=0x19 debug_quirks=0x200"
+
+# Compatibilidad con kernel 5.10+
+export KERNEL_5_10_COMPAT=y
+
+# Patches específicos para kernel 5.10+
+export APPLY_KERNEL_5_10_PATCHES=y
+
+# Configuración de debug para troubleshooting
+export DEBUG_DRIVER=y
+export DEBUG_QUIRKS=0x200

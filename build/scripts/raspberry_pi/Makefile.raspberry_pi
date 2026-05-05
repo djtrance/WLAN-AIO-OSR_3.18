@@ -1,0 +1,145 @@
+# Makefile para Raspberry Pi
+
+targetList := drivers_firmware drivers firmware_transfer drivers
+
+default: ${targetList}
+
+#################################################################################################################################
+export ATHTSTPATH_TOPDIR=${ATH_TOPDIR}/apps/athtst
+export SIGMA_TOPDIR=${ATH_TOPDIR}/apps/sigma-dut
+export WFDSIGMA_TOPDIR=${ATH_TOPDIR}/apps/wfa-sigma-dut
+
+export WLAN_DRIVER_TOPDIR=${ATH_TOPDIR}/drivers
+export WPA_SUPPLICANT_TOPDIR=${ATH_TOPDIR}/apps/hostap
+export WPA_SUPPLICANT_COMBO_TOPDIR=${ATH_TOPDIR}/apps/athr-hostap-wfd
+export IW30_TOPDIR=${ATH_TOPDIR}/apps/iw-3.0
+export LIBNL11_TOPDIR=${ATH_TOPDIR}/apps/libnl-1
+
+#################################################################################################################################
+# Patches específicos para Raspberry Pi
+
+drivers_patch:
+	@echo "Applying patches for Raspberry Pi..."
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/47-raspberry_pi_compat.patch || true
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/44-use_kernel_cfg80211.patch || true
+	@cd ${WLAN_DRIVER_TOPDIR} && patch -p0 < patches/39-user_set_regdomain.patch || true
+
+#################################################################################################################################
+# Driver build for Raspberry Pi
+
+drivers: rootfs_prep
+	@echo "Building drivers for Raspberry Pi..."
+	cd ${WLAN_DRIVER_TOPDIR} && ${MAKEARCH}
+
+	# Copy modules to install root
+	find ${WLAN_DRIVER_TOPDIR} -name '*.ko' -exec cp '{}' $(INSTALL_ROOT)/lib/modules ';'
+
+drivers_firmware: rootfs_prep
+	@echo "Building firmware for Raspberry Pi..."
+	cd ${WLAN_DRIVER_TOPDIR} && ${MAKEARCH} firmware_install
+
+drivers_firmware_transfer:
+	@echo "Transferring driver firmwares..."
+	cd ${WLAN_DRIVER_TOPDIR} && ${MAKEARCH} firmware_toarray
+
+drivers_clean:
+	@echo "Cleaning drivers..."
+	cd ${WLAN_DRIVER_TOPDIR} && ${MAKEARCH} driver_clean
+
+#################################################################################################################################
+# Firmware installation for Raspberry Pi
+
+firmware_install:
+	@echo "Installing firmware to ${INSTALL_ROOT}/lib/firmware/ath6k"
+	@rm -rf ${INSTALL_ROOT}/lib/firmware/ath6k
+	@mkdir -p ${INSTALL_ROOT}/lib/firmware/ath6k
+	cp -rf $(ATH_DRIVER_TOPDIR)/fw/firmware ${INSTALL_ROOT}/lib/firmware/ath6k
+
+	# Install firmware for Raspberry Pi USB devices
+	if [ "$(BOARD_DATA)" = "AR9271-RPI" ]; then
+		echo "Installing AR9271 firmware for Raspberry Pi..."
+		mkdir -p ${INSTALL_ROOT}/lib/firmware/ath6k/AR6004/hw3.0
+		cp $(ATH_DRIVER_TOPDIR)/fw/firmware/AR6004/hw3.0/fw.ram.bin ${INSTALL_ROOT}/lib/firmware/ath6k/AR6004/hw3.0/fw.ram.bin
+		cp $(ATH_DRIVER_TOPDIR)/fw/firmware/AR6004/hw3.0/boardData_2_1_QCA6234_050.bin ${INSTALL_ROOT}/lib/firmware/ath6k/AR6004/hw3.0/bdata.bin
+	fi
+
+#################################################################################################################################
+# Rootfs build for Raspberry Pi
+
+rootfs_prep:
+	@mkdir -p $(INSTALL_ROOT)
+	@mkdir -p $(INSTALL_ROOT)/sbin
+	@mkdir -p $(INSTALL_ROOT)/usr/sbin
+	@mkdir -p $(INSTALL_ROOT)/lib/modules
+	@mkdir -p $(INSTALL_ROOT)/etc
+
+rootfs_build:
+	@echo "Building rootfs for Raspberry Pi..."
+	@cp -Rf $(ROOTFS_TOPDIR)/* $(INSTALL_ROOT)
+
+rootfs_clean:
+	@echo "Cleaning rootfs..."
+	@rm -rf $(INSTALL_ROOT)
+
+#################################################################################################################################
+# wpa_supplicant build for Raspberry Pi
+
+wpa_supplicant: rootfs_prep wpa_supplicant_clean
+	@echo "Building wpa_supplicant for Raspberry Pi..."
+	cd $(WPA_SUPPLICANT_TOPDIR)/wpa_supplicant && \
+	mkdir -p $(INSTALL_ROOT)/sbin/systemd $(INSTALL_ROOT)/sbin/dbus && \
+	${MAKEARCH} CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld && \
+	${MAKEARCH} DESTDIR=$(INSTALL_ROOT) BINDIR=/sbin LIBDIR=/lib install
+
+wpa_supplicant_clean:
+	@echo "Cleaning wpa_supplicant..."
+	cd $(WPA_SUPPLICANT_TOPDIR)/wpa_supplicant && ${MAKEARCH} clean
+
+#################################################################################################################################
+# hostapd build for Raspberry Pi
+
+hostapd: rootfs_prep hostapd_clean
+	@echo "Building hostapd for Raspberry Pi..."
+	cd $(WPA_SUPPLICANT_TOPDIR)/hostapd && \
+	${MAKEARCH} CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld && \
+	cp -f hostapd $(INSTALL_ROOT)/sbin && \
+	cp -f hostapd_cli $(INSTALL_ROOT)/sbin
+
+hostapd_clean:
+	@echo "Cleaning hostapd..."
+	cd $(WPA_SUPPLICANT_TOPDIR)/hostapd && ${MAKEARCH} clean
+
+#################################################################################################################################
+# iw build for Raspberry Pi
+
+iw: rootfs_prep iw_clean
+	@echo "Building iw-3.0 for Raspberry Pi..."
+	cd $(IW30_TOPDIR) && \
+	${MAKEARCH} CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld && \
+	${MAKEARCH} DESTDIR=$(INSTALL_ROOT) SBINDIR=/sbin install
+
+iw_clean:
+	@echo "Cleaning iw-3.0..."
+	cd $(IW30_TOPDIR) && ${MAKEARCH} clean
+
+#################################################################################################################################
+# libnl build for Raspberry Pi
+
+libnl_config:
+	@echo "Configuring libnl1-1 for Raspberry Pi..."
+	cd $(LIBNL11_TOPDIR) && \
+	./configure --host=$(TOOLPREFIX) CC=$(TOOLPREFIX)gcc AR=$(TOOLPREFIX)ar LD=$(TOOLPREFIX)ld
+
+libnl: libnl_config libnl_clean
+	@echo "Building libnl1-1 for Raspberry Pi..."
+	cd $(LIBNL11_TOPDIR) && \
+	${MAKEARCH}
+
+libnl_clean:
+	@echo "Cleaning libnl1-1..."
+	cd $(LIBNL11_TOPDIR) && ${MAKEARCH} clean
+
+#################################################################################################################################
+# Clean all
+
+clean: hostapd_clean wpa_supplicant_clean drivers_clean rootfs_clean iw_clean libnl_clean
