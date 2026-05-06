@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script para generar el archivo syscall.tbl del kernel de Raspberry Pi
+# Script para generar los archivos faltantes del kernel de Raspberry Pi
 # Necesario para compilar módulos externos con kernel 5.10+
 #
 
@@ -8,15 +8,8 @@ set -e
 
 KERNEL_VERSION="5.10.103-v7+"
 KERNEL_PATH="/usr/src/linux-headers-${KERNEL_VERSION}"
-SYSCALL_TBL="${KERNEL_PATH}/arch/arm/tools/syscall.tbl"
 
-echo "[INFO] Generando archivo syscall.tbl para kernel ${KERNEL_VERSION}..."
-
-# Verificar si el archivo ya existe
-if [ -f "${SYSCALL_TBL}" ]; then
-    echo "[INFO] syscall.tbl ya existe en ${SYSCALL_TBL}"
-    exit 0
-fi
+echo "[INFO] Generando archivos faltantes del kernel ${KERNEL_VERSION}..."
 
 # Verificar si existe el directorio del kernel
 if [ ! -d "${KERNEL_PATH}" ]; then
@@ -30,11 +23,10 @@ mkdir -p "${KERNEL_PATH}/arch/arm/tools"
 # Generar syscall.tbl basado en kernel 5.10 ARM
 echo "[INFO] Generando syscall.tbl..."
 
-cat > "${SYSCALL_TBL}" << 'EOF'
+cat > "${KERNEL_PATH}/arch/arm/tools/syscall.tbl" << 'EOF'
 # SPDX-License-Identifier: GPL-2.0
 #
 # syscall table for ARM 32-bit
-#
 # No    name             call number     sys call name
 100    sys_restart_process 100           restart_process
 102    sys_coredump       102           coredump
@@ -259,8 +251,93 @@ cat > "${SYSCALL_TBL}" << 'EOF'
 407    sys_exit_group    407           exit_group
 408    sys_epoll_pwait   408           epoll_pwait
 409    sys_utimensat     409           utimensat
-
 EOF
 
-echo "[INFO] syscall.tbl generado exitosamente en ${SYSCALL_TBL}"
+# Generar syscallhdr.sh - script para generar syscalls.h
+echo "[INFO] Generando syscallhdr.sh..."
+
+cat > "${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh" << 'EOF'
+#!/bin/sh
+#
+# syscallhdr.sh - generate syscalls.h from syscall.tbl
+#
+
+if [ $# != 2 ]; then
+	echo "Usage: $0 <syscall.tbl> <syscalls.h>"
+	exit 1
+fi
+
+tbl="$1"
+hfile="$2"
+
+echo "/* This file is auto-generated from ${tbl} - DO NOT EDIT */" > "$hfile"
+echo "#ifndef __ARCH_UAPI_SYSCALL_H" >> "$hfile"
+echo "#define __ARCH_UAPI_SYSCALL_H" >> "$hfile"
+
+while read -r num name alias; do
+	case "$num" in
+		\#*|"") continue ;;
+	esac
+
+	echo "#define __NR_${name} ${num}" >> "$hfile"
+done < "$tbl"
+
+echo "#endif /* __ARCH_UAPI_SYSCALL_H */" >> "$hfile"
+EOF
+
+chmod +x "${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh"
+
+# Generar syscalls.h
+echo "[INFO] Generando syscalls.h..."
+
+"${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh" \
+    "${KERNEL_PATH}/arch/arm/tools/syscall.tbl" \
+    "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/unistd.h"
+
+# Generar syscallnr.sh
+echo "[INFO] Generando syscallnr.sh..."
+
+cat > "${KERNEL_PATH}/arch/arm/tools/syscallnr.sh" << 'EOF'
+#!/bin/sh
+#
+# syscallnr.sh - generate syscalls.h from syscall.tbl (numbered version)
+#
+
+if [ $# != 2 ]; then
+	echo "Usage: $0 <syscall.tbl> <syscalls.h>"
+	exit 1
+fi
+
+tbl="$1"
+hfile="$2"
+
+echo "/* This file is auto-generated from ${tbl} - DO NOT EDIT */" > "$hfile"
+echo "#ifndef __ARCH_UAPI_NR_H" >> "$hfile"
+echo "#define __ARCH_UAPI_NR_H" >> "$hfile"
+
+while read -r num name alias; do
+	case "$num" in
+		\#*|"") continue ;;
+	esac
+
+	echo "#define __NR_${name} ${num}" >> "$hfile"
+done < "$tbl"
+
+echo "#endif /* __ARCH_UAPI_NR_H */" >> "$hfile"
+EOF
+
+chmod +x "${KERNEL_PATH}/arch/arm/tools/syscallnr.sh"
+
+# Generar syscalls_32.h
+mkdir -p "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm"
+
+"${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh" \
+    "${KERNEL_PATH}/arch/arm/tools/syscall.tbl" \
+    "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/syscalls_32.h"
+
+echo "[INFO] Archivos generados exitosamente:"
+echo "  - ${KERNEL_PATH}/arch/arm/tools/syscall.tbl"
+echo "  - ${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh"
+echo "  - ${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/unistd.h"
+echo "  - ${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/syscalls_32.h"
 echo "[INFO] Ahora puedes compilar el driver ath6kl"

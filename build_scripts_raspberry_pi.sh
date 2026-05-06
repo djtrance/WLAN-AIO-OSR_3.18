@@ -51,15 +51,18 @@ if [ ! -d "${KERNEL_PATH}" ]; then
     echo_error "Kernel headers no encontrados en ${KERNEL_PATH}"
 fi
 
-# Verificar y generar syscall.tbl si es necesario
-check_syscall_tbl() {
+# Verificar y generar archivos faltantes del kernel
+check_kernel_headers() {
     local SYSCALL_TBL="${KERNEL_PATH}/arch/arm/tools/syscall.tbl"
+    local SYSCALLHDR="${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh"
 
-    if [ ! -f "${SYSCALL_TBL}" ]; then
-        echo_warn "syscall.tbl no encontrado, generando..."
+    if [ ! -f "${SYSCALL_TBL}" ] || [ ! -f "${SYSCALLHDR}" ]; then
+        echo_warn "Archivos del kernel incompletos, generando..."
 
         mkdir -p "${KERNEL_PATH}/arch/arm/tools"
+        mkdir -p "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm"
 
+        # Generar syscall.tbl
         cat > "${SYSCALL_TBL}" << 'EOF'
 # SPDX-License-Identifier: GPL-2.0
 # syscall table for ARM 32-bit - auto-generated for Raspberry Pi kernel 5.10+
@@ -289,12 +292,41 @@ check_syscall_tbl() {
 409    sys_utimensat     409           utimensat
 EOF
 
-        echo_info "syscall.tbl generado exitosamente"
+        # Generar syscallhdr.sh
+        cat > "${SYSCALLHDR}" << 'EOF'
+#!/bin/sh
+if [ $# != 2 ]; then
+	echo "Usage: $0 <syscall.tbl> <syscalls.h>"
+	exit 1
+fi
+tbl="$1"
+hfile="$2"
+echo "/* This file is auto-generated from ${tbl} - DO NOT EDIT */" > "$hfile"
+echo "#ifndef __ARCH_UAPI_SYSCALL_H" >> "$hfile"
+echo "#define __ARCH_UAPI_SYSCALL_H" >> "$hfile"
+while read -r num name alias; do
+	case "$num" in
+		\#*|"") continue ;;
+	esac
+	echo "#define __NR_${name} ${num}" >> "$hfile"
+done < "$tbl"
+echo "#endif /* __ARCH_UAPI_SYSCALL_H */" >> "$hfile"
+EOF
+
+        chmod +x "${SYSCALLHDR}"
+
+        # Generar syscalls.h y syscalls_32.h
+        mkdir -p "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm"
+
+        "${SYSCALLHDR}" "${SYSCALL_TBL}" "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/unistd.h"
+        "${SYSCALLHDR}" "${SYSCALL_TBL}" "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/syscalls_32.h"
+
+        echo_info "Archivos del kernel generados exitosamente"
     fi
 }
 
-# Llamar a check_syscall_tbl al inicio del script
-check_syscall_tbl
+# Llamar a check_kernel_headers al inicio del script
+check_kernel_headers
 
 # Instalar dependencias para Raspberry Pi
 install_dependencies() {
