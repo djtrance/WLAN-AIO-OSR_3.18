@@ -315,9 +315,10 @@ EOF
 
         chmod +x "${SYSCALLHDR}"
 
-        # Generar syscalls.h y syscalls_32.h
+        # Generar syscalls.h y syscalls_32.h (syscallhdr.sh necesita 2 argumentos)
         mkdir -p "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm"
 
+        # syscallhdr.sh <syscall.tbl> <syscalls.h>
         "${SYSCALLHDR}" "${SYSCALL_TBL}" "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/unistd.h"
         "${SYSCALLHDR}" "${SYSCALL_TBL}" "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/syscalls_32.h"
 

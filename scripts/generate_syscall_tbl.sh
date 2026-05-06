@@ -287,49 +287,14 @@ EOF
 
 chmod +x "${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh"
 
-# Generar syscalls.h
-echo "[INFO] Generando syscalls.h..."
+# Generar syscalls.h y syscalls_32.h
+echo "[INFO] Generando headers del kernel..."
+
+mkdir -p "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm"
 
 "${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh" \
     "${KERNEL_PATH}/arch/arm/tools/syscall.tbl" \
     "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/unistd.h"
-
-# Generar syscallnr.sh
-echo "[INFO] Generando syscallnr.sh..."
-
-cat > "${KERNEL_PATH}/arch/arm/tools/syscallnr.sh" << 'EOF'
-#!/bin/sh
-#
-# syscallnr.sh - generate syscalls.h from syscall.tbl (numbered version)
-#
-
-if [ $# != 2 ]; then
-	echo "Usage: $0 <syscall.tbl> <syscalls.h>"
-	exit 1
-fi
-
-tbl="$1"
-hfile="$2"
-
-echo "/* This file is auto-generated from ${tbl} - DO NOT EDIT */" > "$hfile"
-echo "#ifndef __ARCH_UAPI_NR_H" >> "$hfile"
-echo "#define __ARCH_UAPI_NR_H" >> "$hfile"
-
-while read -r num name alias; do
-	case "$num" in
-		\#*|"") continue ;;
-	esac
-
-	echo "#define __NR_${name} ${num}" >> "$hfile"
-done < "$tbl"
-
-echo "#endif /* __ARCH_UAPI_NR_H */" >> "$hfile"
-EOF
-
-chmod +x "${KERNEL_PATH}/arch/arm/tools/syscallnr.sh"
-
-# Generar syscalls_32.h
-mkdir -p "${KERNEL_PATH}/arch/arm/include/generated/uapi/asm"
 
 "${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh" \
     "${KERNEL_PATH}/arch/arm/tools/syscall.tbl" \
@@ -341,3 +306,4 @@ echo "  - ${KERNEL_PATH}/arch/arm/tools/syscallhdr.sh"
 echo "  - ${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/unistd.h"
 echo "  - ${KERNEL_PATH}/arch/arm/include/generated/uapi/asm/syscalls_32.h"
 echo "[INFO] Ahora puedes compilar el driver ath6kl"
+
